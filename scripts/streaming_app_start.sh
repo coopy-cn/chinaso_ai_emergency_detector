@@ -1,0 +1,1 @@
+nohup sh /application/search/emergency_detector/scipts/streaming_app_submit.sh > /data0/search/emergency_detector/logs/nohup.log 2>&1 &
