@@ -22,6 +22,9 @@ from tensorflow.python.keras.layers import Dense, Flatten, Conv1D, MaxPooling1D,
 from tensorflow.python.keras.layers import Embedding
 from tensorflow.python.keras.models import Model
 
+from tensorflow.python.keras.preprocessing import sequence
+from tensorflow.python.keras.preprocessing.text import Tokenizer
+
 
 def text_cnn(maxlen=150, max_features=2000, embed_size=32):
     # Inputs
@@ -52,6 +55,30 @@ def text_cnn(maxlen=150, max_features=2000, embed_size=32):
     return model
 
 
+def preprocessing(train_texts, train_labels, test_texts, test_labels):
+    tokenizer = Tokenizer(num_words=2000)  # 建立一个2000个单词的字典
+    tokenizer.fit_on_texts(train_texts)
+    # 对每一句影评文字转换为数字列表，使用每个词的编号进行编号
+    x_train_seq = tokenizer.texts_to_sequences(train_texts)
+    x_test_seq = tokenizer.texts_to_sequences(test_texts)
+    x_train = sequence.pad_sequences(x_train_seq, maxlen=150)
+    x_test = sequence.pad_sequences(x_test_seq, maxlen=150)
+    y_train = np.array(train_labels)
+    y_test = np.array(test_labels)
+    return x_train, y_train, x_test, y_test
+
+
 if __name__ == "__main__":
+    train_texts, train_labels = read_files('train')
+    test_texts, test_labels = read_files('test')
+    x_train, y_train, x_test, y_test = preprocessing(train_texts, train_labels, test_texts, test_labels)
     model = text_cnn()
     model.summary()
+    batch_size = 64
+    epochs = 10
+    model.fit(x_train,y_train,
+              validation_split = 0.1,
+              batch_size = batch_size,
+              shuffle = True)
+    scores = model.eveluate(x_test,y_test)
+    print('test_loss: %f, accuracy: %f' % (scores[0],scores[1]))
